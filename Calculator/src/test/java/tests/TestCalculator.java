@@ -48,6 +48,24 @@ public class TestCalculator{
         assertThat(calc.calculate(a2),is((double)9));
     }
 
+    @Test
+    public void testMin() {
+
+        String a1="1m2";
+        assertThat(calc.calculate(a1),is((double)1));
+        String a2="9m12";
+        assertThat(calc.calculate(a2),is((double)9));
+    }
+
+    @Test
+    public void testMax() {
+
+        String a1="1M2";
+        assertThat(calc.calculate(a1),is((double)2));
+        String a2="9M12";
+        assertThat(calc.calculate(a2),is((double)12));
+    }
+
     @Test(expected = NumberFormatException.class)
     public void testError() {
         String a1="1/";

@@ -9,7 +9,7 @@ public class Calculator {
         Operation op=new Nothing();
 
 
-         String[] args=toCalc.split("[+\\-*/min]");
+         String[] args=toCalc.split("[+\\-*/mM]");
          if(args.length==2){
 
              double value1=Double.parseDouble(args[0]);
@@ -21,7 +21,10 @@ public class Calculator {
                 case "-": op=new Minus();break;
                 case "*": op=new Multiply();break;
                 case "/": op=new Divide();break;
-                case "min": op=new Minim();break;
+                case "m": op=new Minim();break;
+                case "M": op=new Maxim();break;
+
+                default:new Nothing();
 
             }
 
