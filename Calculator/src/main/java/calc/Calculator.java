@@ -5,11 +5,11 @@ import calc.operation.*;
 
 public class Calculator {
 
-    public double calculate(String toCalc) {
+    public double calculate(String toCalc) throws NumberFormatException{
         Operation op=new Nothing();
 
 
-         String[] args=toCalc.split("[+\\-*/mM]");
+         String[] args=toCalc.split("[+\\-*/mM=]");
          if(args.length==2){
 
              double value1=Double.parseDouble(args[0]);
@@ -24,7 +24,7 @@ public class Calculator {
                 case "m": op=new Minim();break;
                 case "M": op=new Maxim();break;
 
-                default:new Nothing();
+                default:new Nothing();break;
 
             }
 
