@@ -46,5 +46,11 @@ public class TestCalculator{
         assertThat(calc.calculate(a2),is((double)9));
     }
 
+    @Test
+    public void testError() {
+        //String a1="1/2";
+        //assertThat(calc.calculate(a1),is(0.5));
+    }
+
 
 }
