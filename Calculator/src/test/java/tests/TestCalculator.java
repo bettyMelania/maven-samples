@@ -1,3 +1,5 @@
+package tests;
+
 import calc.Calculator;
 import org.junit.Before;
 import org.junit.Test;
@@ -10,7 +12,7 @@ public class TestCalculator{
     private Calculator calc;
 
     @Before
-    public void setup() {
+    public void setUp() {
         calc = new Calculator();
     }
 
@@ -46,10 +48,12 @@ public class TestCalculator{
         assertThat(calc.calculate(a2),is((double)9));
     }
 
-    @Test
+    @Test(expected = NumberFormatException.class)
     public void testError() {
-        //String a1="1/2";
-        //assertThat(calc.calculate(a1),is(0.5));
+        String a1="1/";
+        calc.calculate(a1);
+        String a2="1gedfv/hgbfv";
+        calc.calculate(a2);
     }
 
 
