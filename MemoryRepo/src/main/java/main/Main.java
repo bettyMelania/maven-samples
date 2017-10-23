@@ -51,7 +51,7 @@ public class Main {
 
         new Runner(opt).run();
     }
-/*
+
     @Benchmark
     public void addList(Blackhole consumer,Elements els) {
         for (int i = 0; i < els.orders.size(); i++){
@@ -87,7 +87,7 @@ public class Main {
     public void containsTreeSet(Blackhole consumer,Elements els) {
         treesetRepo.contains(els.o);
     }
-*/
+
     @Benchmark
     public void removeList(Blackhole consumer,Elements els) {
         listRepo.remove(els.o);
