@@ -2,8 +2,24 @@ package calc;
 
 import calc.operation.*;
 
+import java.util.HashMap;
+import java.util.Map;
+
 
 public class Calculator {
+
+    private static final Map<String, Operation> myMap;
+    static
+    {
+        myMap = new HashMap<String, Operation>();
+        myMap.put("+", new Plus());
+        myMap.put("-", new Minus());
+        myMap.put("*", new Multiply());
+        myMap.put("/", new Divide());
+        myMap.put("M", new Maxim());
+        myMap.put("m", new Minim());
+
+    }
 
     public double calculate(String toCalc) throws NumberFormatException{
         Operation op=new Nothing();
@@ -16,17 +32,15 @@ public class Calculator {
              double value2=Double.parseDouble(args[1]);
 
             String operator= toCalc.replaceAll("[\\d.]", "");
-            switch(operator){
-                case "+": op=new Plus();break;
-                case "-": op=new Minus();break;
-                case "*": op=new Multiply();break;
-                case "/": op=new Divide();break;
-                case "m": op=new Minim();break;
-                case "M": op=new Maxim();break;
 
-                default:new Nothing();break;
 
-            }
+           if (myMap.containsKey(operator)){
+                op=myMap.get(operator);
+             }
+             else
+                op=new Nothing();
+
+
 
             return op.execute(value1,value2);
         }
