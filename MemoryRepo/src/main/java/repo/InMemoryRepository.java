@@ -1,8 +1,11 @@
 package repo;
 
 public interface InMemoryRepository<T> {
-    void add(T t);
-    boolean contains(T t);
-    void remove(T t);
+    boolean add(T e);
+
+    boolean contains(T e);
+
+    boolean remove(T e);
+
     void clear();
 }

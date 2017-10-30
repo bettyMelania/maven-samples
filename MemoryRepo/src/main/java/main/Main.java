@@ -1,45 +1,24 @@
 package main;
 import order.Order;
 import org.openjdk.jmh.annotations.*;
-import org.openjdk.jmh.infra.Blackhole;
 import org.openjdk.jmh.runner.Runner;
 import org.openjdk.jmh.runner.RunnerException;
 import org.openjdk.jmh.runner.options.Options;
 import org.openjdk.jmh.runner.options.OptionsBuilder;
-import repo.*;
 
-import java.util.ArrayList;
-import java.util.List;
+import states.RepoState;
+import states.SizeState;
+
 import java.util.concurrent.TimeUnit;
 
 
 @BenchmarkMode(Mode.AverageTime)
 @OutputTimeUnit(TimeUnit.NANOSECONDS)
-@Warmup(iterations = 10, time = 1, timeUnit = TimeUnit.SECONDS)
-@Measurement(iterations = 20, time = 1, timeUnit = TimeUnit.SECONDS)
+@Warmup(iterations = 10, time = 1)
+@Measurement(iterations = 20, time = 1)
 @Fork(1)
 @State(Scope.Benchmark)
 public class Main {
-    private static int nrEl=10;
-    private InMemoryRepository listRepo=new ArrayListBasedRepository();
-    private InMemoryRepository hashsetRepo=new HashSetBasedRepository();
-    private InMemoryRepository treesetRepo=new TreeSetBasedRepository();
-
-    @State(Scope.Thread)
-    public static class Elements{
-        private List<Order> orders=new ArrayList<>();
-        Order o;
-        @Setup(Level.Trial)
-        public void doSetup(){
-            for (int i = 0; i < 10; i++) {
-                o = new Order(i, i * 2, i * 3);
-                //System.out.println(o);
-                orders.add(o);
-            }
-        }
-
-
-    }
 
 
     public static void main(String[] args) throws RunnerException {
@@ -50,57 +29,92 @@ public class Main {
                 .build();
 
         new Runner(opt).run();
+
     }
 
-    @Benchmark
-    public void addList(Blackhole consumer,Elements els) {
-        for (int i = 0; i < els.orders.size(); i++){
-            listRepo.add(els.orders.get(i));
+    @State(Scope.Benchmark)
+    public static class BeforeState {
+        Order order;
+
+        @Setup(Level.Invocation)
+        public void generateOrder(SizeState sizeState) {
+            order = sizeState.before.get();
         }
-        listRepo.clear();
-    }
 
-   @Benchmark
-    public void addSet(Blackhole consumer,Elements els) {
-       for (int i = 0; i < els.orders.size(); i++){
-           hashsetRepo.add(els.orders.get(i));
-       }
-    }
-
-    @Benchmark
-    public void addTreeSet(Blackhole consumer,Elements els) {
-        for (int i = 0; i < els.orders.size(); i++) {
-            treesetRepo.add(els.orders.get(i));
+        @TearDown(Level.Invocation)
+        public void removeOrder(RepoState repoState) {
+            repoState.orders.remove(order);
         }
     }
+
+    @State(Scope.Benchmark)
+    public static class AfterState {
+        Order order;
+
+        @Setup(Level.Invocation)
+        public void generateOrder(SizeState sizeState) {
+            order = sizeState.after.get();
+        }
+
+        @TearDown(Level.Invocation)
+        public void removeOrder(RepoState repoState) {
+            repoState.orders.remove(order);
+        }
+    }
+
+    @State(Scope.Benchmark)
+    public static class ExistingState {
+        Order order;
+
+        @Setup(Level.Invocation)
+        public void generateOrder(SizeState sizeState) {
+            order = sizeState.existing.get();
+        }
+
+        @TearDown(Level.Invocation)
+        public void removeOrder(RepoState repoState) {
+            repoState.orders.remove(order);
+        }
+    }
+
+
     @Benchmark
-    public void containsList(Blackhole consumer,Elements els) {
-        listRepo.contains(els.o);
+    public boolean add_before(RepoState repoState, BeforeState before) {
+        return repoState.orders.add(before.order);
     }
 
     @Benchmark
-    public void containsSet(Blackhole consumer,Elements els) {
-        hashsetRepo.contains(els.o);
+    public boolean add_existing(RepoState repoState, ExistingState existing) {
+        return repoState.orders.add(existing.order);
     }
 
     @Benchmark
-    public void containsTreeSet(Blackhole consumer,Elements els) {
-        treesetRepo.contains(els.o);
+    public boolean add_after(RepoState repoState, AfterState after) {
+        return repoState.orders.add(after.order);
     }
 
     @Benchmark
-    public void removeList(Blackhole consumer,Elements els) {
-        listRepo.remove(els.o);
+    public boolean contains_existing(RepoState repoState,ExistingState existing) {
+        return repoState.orders.contains(existing.order);
+}
+    @Benchmark
+    public boolean contains_inexisting(RepoState repoState,AfterState after) {
+        return repoState.orders.contains(after.order);
+    }
+    @Benchmark
+    public boolean remove_existing(RepoState repoState,ExistingState existing) {
+        return repoState.orders.remove(existing.order);
+    }
+    @Benchmark
+    public boolean remove_inexisting(RepoState repoState,AfterState after) {
+        return repoState.orders.remove(after.order);
     }
 
-    @Benchmark
-    public void removeSet(Blackhole consumer,Elements els) {
-        hashsetRepo.remove(els.o);
-    }
 
-    @Benchmark
-    public void removeTreeSet(Blackhole consumer,Elements els) {
-        treesetRepo.remove(els.o);
-    }
+
+
+
+
+
 
 }

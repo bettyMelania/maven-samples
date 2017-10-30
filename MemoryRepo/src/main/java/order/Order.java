@@ -1,12 +1,17 @@
 package order;
 
-public class Order implements Comparable {
+import java.util.Objects;
+
+public class Order implements Comparable<Order> {
     private int id;
 
     private int price;
 
     private int quantity;
 
+    public Order(int i){
+        this(i,i,i);
+    }
     public Order(int id, int price, int quantity) {
         this.id = id;
         this.price = price;
@@ -16,12 +21,11 @@ public class Order implements Comparable {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-
-        Order order = (Order) o;
-
-        if (id != order.id) return false;
-        return true;
+        if (o instanceof Order) {
+            final Order that = (Order) o;
+            return Objects.equals(this.id, that.id);
+        }
+        return false;
     }
 
     @Override
@@ -41,18 +45,8 @@ public class Order implements Comparable {
                 '}';
     }
     @Override
-    public int compareTo(Object object){
-        Order o=(Order) object;
-        if (this.id > o.id)
-            return 1;
-        else if (this.id < o.id)
-            return -1;
-        else
-            if(this.price>o.price)
-                return 1;
-            else if(this.price<o.price)
-                return 0;
-            else return 0;
+    public int compareTo(Order object){
+        return Integer.compare(this.id,object.id);
 
     }
 
