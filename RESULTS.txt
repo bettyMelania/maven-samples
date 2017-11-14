@@ -149,3 +149,32 @@ Main.remove_inexisting       KOLOBOKE_HASH_SET    1000  avgt   20   37.046 ±   
 Main.remove_inexisting       KOLOBOKE_HASH_SET   10000  avgt   20   38.074 ±   3.560  ns/op
 
 
+Benchmark             Mode  Cnt    Score    Error  Units
+Main.addInt           avgt   20   21.933 ±  1.893  ns/op
+Main.addIntFast       avgt   20   22.003 ±  1.116  ns/op
+Main.containsInt      avgt   20  469.632 ± 15.716  ns/op
+Main.containsIntFast  avgt   20  465.294 ± 10.407  ns/op
+Main.removeInt        avgt   20  484.872 ± 27.424  ns/op
+Main.removeIntFast    avgt   20  471.798 ± 29.576  ns/op
+
+Benchmark              (repositorySupplier)  (size)  Mode  Cnt   Score    Error  Units
+Main.add_after_int         ECLIPSE_INT_LIST    1000  avgt   20  21.615 ±  0.488  ns/op
+Main.add_after_int         ECLIPSE_INT_LIST   10000  avgt   20  26.359 ±  4.361  ns/op
+Main.add_before_int        ECLIPSE_INT_LIST    1000  avgt   20  26.121 ±  5.653  ns/op
+Main.add_before_int        ECLIPSE_INT_LIST   10000  avgt   20  26.815 ±  7.195  ns/op
+Main.add_existing_int      ECLIPSE_INT_LIST    1000  avgt   20  79.097 ± 15.733  ns/op
+Main.add_existing_int      ECLIPSE_INT_LIST   10000  avgt   20  74.813 ±  4.831  ns/op
+Main.contains_existing_int        ECLIPSE_INT_LIST    1000  avgt   20  20.356 ± 29.320  ns/op
+Main.contains_existing_int        ECLIPSE_INT_LIST   10000  avgt   20  25.670 ±  3.442  ns/op
+Main.contains_inexisting_int      ECLIPSE_INT_LIST    1000  avgt   20  23.903 ±  5.403  ns/op
+Main.contains_inexisting_int      ECLIPSE_INT_LIST   10000  avgt   20  25.653 ± 14.657  ns/op
+Main.remove_existing_int          ECLIPSE_INT_LIST    1000  avgt   20  26.074 ±  3.421  ns/op
+Main.remove_existing_int          ECLIPSE_INT_LIST   10000  avgt   20  23.599 ±  0.251  ns/op
+Main.remove_inexisting_int        ECLIPSE_INT_LIST    1000  avgt   20  19.951 ±  0.863  ns/op
+Main.remove_inexisting_int        ECLIPSE_INT_LIST   10000  avgt   20  19.847 ±  0.893  ns/op
+Main.add_existing_int     FASTUTIL_INT_LIST    1000  avgt   20  79.764 ± 12.048  ns/op
+Main.add_existing_int     FASTUTIL_INT_LIST   10000  avgt   20  73.806 ±  1.505  ns/op
+Main.contains_existing_int       FASTUTIL_INT_LIST    1000  avgt   20   290.238 ±  32.631  ns/op
+Main.contains_existing_int       FASTUTIL_INT_LIST   10000  avgt   20  2221.199 ± 257.643  ns/op
+Main.contains_inexisting_int     FASTUTIL_INT_LIST    1000  avgt   20   473.331 ±  28.260  ns/op
+Main.contains_inexisting_int     FASTUTIL_INT_LIST   10000  avgt   20  4266.047 ± 485.059  ns/op
