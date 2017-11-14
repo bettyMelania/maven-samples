@@ -1,6 +1,5 @@
 package states;
 
-import order.Order;
 import org.openjdk.jmh.annotations.Param;
 import org.openjdk.jmh.annotations.Scope;
 import org.openjdk.jmh.annotations.State;
@@ -8,7 +7,6 @@ import org.openjdk.jmh.annotations.State;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.IntSupplier;
-import java.util.function.Supplier;
 
 @State(Scope.Benchmark)
 public class SizeStateInt {

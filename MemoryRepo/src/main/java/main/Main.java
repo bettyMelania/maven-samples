@@ -123,7 +123,7 @@ public class Main {
             repoState.ints.remove(nr);
         }
     }
-/*
+
     @Benchmark
     public boolean add_before(RepoState repoState, BeforeState before) {
         return repoState.orders.add(before.order);
@@ -155,7 +155,7 @@ public class Main {
     public boolean remove_inexisting(RepoState repoState,AfterState after) {
         return repoState.orders.remove(after.order);
     }
-*/
+
     @Benchmark
     public boolean add_before_int(RepoStateInt repoState, BeforeStateInt before) {
         return repoState.ints.add(before.nr);
@@ -170,7 +170,7 @@ public class Main {
     public boolean add_after_int(RepoStateInt repoState, AfterStateInt after) {
         return repoState.ints.add(after.nr);
     }
-/*
+
     @Benchmark
     public boolean contains_existing_int(RepoStateInt repoState,ExistingStateInt existing) {
         return repoState.ints.contains(existing.nr);
@@ -187,5 +187,5 @@ public class Main {
     public boolean remove_inexisting_int(RepoStateInt repoState,AfterStateInt after) {
         return repoState.ints.remove(after.nr);
     }
-*/
+
 }

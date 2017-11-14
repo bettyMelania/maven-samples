@@ -16,6 +16,7 @@ public class SerializeDeserialize {
 
     public void serialize(){
         try (ObjectOutputStream out=new ObjectOutputStream(new FileOutputStream("bigList.list"))) {
+            out.writeObject(list.size());
             for (BigDecimal b: list) {
                 out.writeObject(b);
             }
@@ -26,10 +27,9 @@ public class SerializeDeserialize {
     public void deserialize(){
         list=new ArrayList<>();
         try (ObjectInputStream in=new ObjectInputStream(new FileInputStream("bigList.list"))) {
-            try {
-                while(true)
+            int nr=(int)in.readObject();
+            for(int i=0;i<nr;i++)
                     list.add((BigDecimal) in.readObject());
-            }catch (EOFException e){}
         } catch (Exception e) {
             e.printStackTrace();
         }
