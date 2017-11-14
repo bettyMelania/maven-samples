@@ -89,7 +89,8 @@
 		<module>Calculator</module>
         <module>MemoryRepo</module>
         <module>BigDecimalLab3</module>
-        <!-- add here any other modules -->
+		<module>ProducerConsumer</module>
+		<!-- add here any other modules -->
 	</modules>
 
 	<profiles>

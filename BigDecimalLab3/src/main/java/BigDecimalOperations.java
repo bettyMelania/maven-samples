@@ -7,10 +7,10 @@ import java.util.stream.Stream;
 public class BigDecimalOperations {
     private List<BigDecimal> list;
 
-    public BigDecimalOperations(){
+    public BigDecimalOperations(int dim){
         list=new ArrayList<>();
 
-        for(int i=0;i<1000;i++){
+        for(int i=0;i<dim;i++){
             list.add(new BigDecimal(i));
         }
     }
@@ -25,12 +25,7 @@ public class BigDecimalOperations {
     }
     public BigDecimal average() {
         Stream<BigDecimal> stream=list.stream();
-        BigDecimal sum=stream.reduce(new BinaryOperator<BigDecimal>() {
-            @Override
-            public BigDecimal apply(BigDecimal d1, BigDecimal d2) {
-                return d1.add(d2);
-            }
-        }).get();
+        BigDecimal sum=sum();
         return sum.divide(new BigDecimal(list.size()));
     }
 
