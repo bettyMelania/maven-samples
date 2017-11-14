@@ -16,12 +16,7 @@ public class BigDecimalOperations {
     }
     public BigDecimal sum() {
         Stream<BigDecimal> stream=list.stream();
-        return stream.reduce(new BinaryOperator<BigDecimal>() {
-            @Override
-            public BigDecimal apply(BigDecimal d1, BigDecimal d2) {
-                return d1.add(d2);
-            }
-        }).get();
+        return stream.reduce(BigDecimal::add).get();
     }
     public BigDecimal average() {
         Stream<BigDecimal> stream=list.stream();
