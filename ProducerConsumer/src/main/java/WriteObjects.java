@@ -29,24 +29,21 @@ public class WriteObjects {
     }
     public void createObjects(){
         String content=read();
-        String regexp="(([A-Z]([A-Za-z])*~){1,3}[12]\\d{12}~[A-Za-z][A-Za-z._]*@[a-z]+.[a-z]+%)";
+        String regexp="(([A-Z]([A-Za-z])*~){3}[12]\\d{12}~[A-Za-z][A-Za-z._]*@[a-z]+.[a-z]+%)";
         Pattern pattern = Pattern.compile(regexp);
         Matcher matcher = pattern.matcher(content);
         String name;
-        String personS;
-        String[] cnpANDmail;
+        String[] personS;
         String cnp;
         String mail;
         while (matcher.find()) {
-            personS=matcher.group(1);
-            name=personS.split("\\d")[0];
-            name=name.replaceAll("~"," ").substring(0,name.length()-1);
-            cnpANDmail=personS.split("~");
-            cnp=cnpANDmail[cnpANDmail.length-2];
-            mail=cnpANDmail[cnpANDmail.length-1];
-            mail=mail.substring(0,mail.length()-1);
+            personS=matcher.group(1).split("~");
+            name=personS[0]+" "+personS[1]+" "+personS[2];
+            cnp=personS[3];
+            mail=personS[4];
             Person p=new Person(name,cnp,mail);
             list.add(p);
+            //System.out.println(p);
         }
 
     }
