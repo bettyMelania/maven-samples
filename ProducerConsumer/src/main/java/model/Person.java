@@ -1,3 +1,5 @@
+package model;
+
 import java.io.Serializable;
 
 public class Person implements Serializable{
@@ -25,7 +27,7 @@ public class Person implements Serializable{
 
     @Override
     public String toString() {
-        return "Person{" +
+        return "model.Person{" +
                 "name='" + name + '\'' +
                 ", cnp='" + cnp + '\'' +
                 ", mail='" + mail + '\'' +

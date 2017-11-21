@@ -1,3 +1,7 @@
+package producerConsumer;
+
+import model.Person;
+
 import java.util.concurrent.BlockingQueue;
 import java.util.regex.Matcher;
 
@@ -6,7 +10,7 @@ public class Producer implements Runnable {
  private BlockingQueue<Person> queue;
  private Matcher matcher;
 
- public Producer(BlockingQueue<Person> q,Matcher m){
+ public Producer(BlockingQueue<Person> q, Matcher m){
   this.queue=q;
   this.matcher=m;
  }
