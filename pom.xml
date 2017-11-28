@@ -90,7 +90,8 @@
         <module>MemoryRepo</module>
         <module>BigDecimalLab3</module>
 		<module>ProducerConsumer</module>
-		<!-- add here any other modules -->
+        <module>Chat</module>
+        <!-- add here any other modules -->
 	</modules>
 
 	<profiles>

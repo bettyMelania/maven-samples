@@ -15,14 +15,14 @@ public class TestPC {
 
     public static void main(String[] args) {
         Matcher m=getMatcher();
-        BlockingQueue<Person> queue = new ArrayBlockingQueue<Person>(10);
+        BlockingQueue<Person> queue = new ArrayBlockingQueue<Person>(1000);
         Producer producer = new Producer(queue,m);
         Consumer consumer = new Consumer(queue);
 
         new Thread(producer).start();
         new Thread(consumer).start();
 
-        System.out.println("producerConsumer.Producer and producerConsumer.Consumer has been started");
+        System.out.println("Producer and Consumer has been started");
     }
 
     public static Matcher getMatcher() {
