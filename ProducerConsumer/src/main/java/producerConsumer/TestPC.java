@@ -34,7 +34,7 @@ public class TestPC {
             e.printStackTrace();
         }
 
-        String regexp="(([A-Z]([A-Za-z])*~){3}[12]\\d{12}~[A-Za-z][A-Za-z._]*@[a-z]+.[a-z]+%)";
+        String regexp="(([A-Z]([A-Za-z])*~){3}[1-9]\\d{2}(0[1-9]|1[0-2])(0[1-9]|[12]\\d|3[01])\\d{6}~[A-Za-z][A-Za-z._]*@[a-z]+.[a-z]+%)";
         Pattern pattern = Pattern.compile(regexp);
         Matcher matcher = pattern.matcher(content);
 

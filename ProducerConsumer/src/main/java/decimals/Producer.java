@@ -17,7 +17,7 @@ public class Producer implements Runnable {
  public void run() {
 
      try (ObjectOutputStream out=new ObjectOutputStream(new FileOutputStream("ProducerConsumer/bigList.list"))) {
-         for (int i = 0; i < 1000000; i++) {
+         for (int i = 0; i < 1_000_000; i++) {
              BigDecimal b = new BigDecimal(i);
              out.writeObject(b);
              queue.put(b);
