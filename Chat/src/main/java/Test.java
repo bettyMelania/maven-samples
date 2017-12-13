@@ -10,8 +10,5 @@ public class Test {
         System.out.println("portOut:");
         int portOut= in.nextInt();
 
-        Client client = new Client(portIn,portOut);
-        client.runClient();
-        client.runServer();
     }
 }
