@@ -15,7 +15,7 @@ import javafx.stage.Stage;
 import java.net.Socket;
 import java.util.Scanner;
 
-public class UiWindow  extends Application {
+public class StartWindow extends Application {
 
 
     @Override
