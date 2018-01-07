@@ -4,19 +4,21 @@ import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.control.TextArea;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.stage.Stage;
 
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.net.Socket;
 
 public class ChatWindow  extends Application {
-    private Socket socket;
-    TextArea messages;
+    private Socket connection;
+    private TextArea messages;
+    private ConnectionManager manager;
+
 
     @Override
     public void start(Stage primaryStage) throws Exception {
@@ -26,7 +28,7 @@ public class ChatWindow  extends Application {
         grid.setVgap(10);
         grid.setPadding(new Insets(25, 25, 25, 25));
 
-        Label produs = new Label("connected with: "+socket);
+        Label produs = new Label("connected with: "+connection);
         grid.add(produs, 0, 0);
 
         messages= new TextArea();
@@ -45,10 +47,15 @@ public class ChatWindow  extends Application {
             @Override
             public void handle(ActionEvent e) {
                 //send
+                    manager.send(messageField.getText(),connection);
+
+
                 messages.appendText("Me >"+messageField.getText()+"\n");
 
                 messageField.setText("");
                 messageField.setPromptText("Enter a message");
+                //if(messageField.getText().equals("!bye"))
+                    //stopReceiving();
             }
         });
 
@@ -66,12 +73,24 @@ public class ChatWindow  extends Application {
 
     }
 
-    public void setSocket(Socket socket){
-        this.socket=socket;
+
+
+    private void showException(Exception ex){
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle("Error");
+        alert.setHeaderText(null);
+        alert.setContentText(ex.getMessage());
+        alert.showAndWait();
+        System.out.println(ex);
+    }
+    public void showMessage(String message){
+        messages.appendText("> "+message+"\n");
     }
 
 
-    public void receiveMessage(String message){
-        messages.appendText("> "+message+"\n");
+
+    public void setManagerSocket(ConnectionManager manager, Socket connection) {
+        this.manager=manager;
+        this.connection=connection;
     }
 }

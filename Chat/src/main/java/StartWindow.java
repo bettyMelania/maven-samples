@@ -12,22 +12,19 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.stage.Stage;
 
+import java.io.IOException;
+import java.io.ObjectOutputStream;
+import java.net.ConnectException;
 import java.net.Socket;
 import java.util.Scanner;
 
 public class StartWindow extends Application {
+    private ConnectionManager manager;
+    private int portIn;
 
 
     @Override
     public void start(Stage primaryStage) throws Exception {
-
-        Scanner inConsole = new Scanner(System.in);
-        System.out.print("Enter a listen port: ");
-        Integer portIn = Integer.parseInt(inConsole.nextLine());
-
-        Client.runServer(portIn);
-
-
 
         GridPane grid = new GridPane();
         grid.setAlignment(Pos.CENTER);
@@ -50,28 +47,13 @@ public class StartWindow extends Application {
 
             @Override
             public void handle(ActionEvent e) {
-
-                Socket socket=Connection.initializeConnection(Integer.parseInt(portField.getText()));
-                if(socket==null){
-                    Alert alert = new Alert(Alert.AlertType.INFORMATION);
-                    alert.setTitle("Error");
-                    alert.setHeaderText(null);
-                    alert.setContentText("Connection failed");
-
-                    alert.showAndWait();
-
-
+                if (!portField.getText().matches("-?\\d+")){
+                    showError("Enter a valid port number");
+                    return;
                 }
-                else {
-                    ChatWindow window = new ChatWindow();
-                    window.setSocket(socket);
-                    Stage stage = new Stage();
-                    try {
-                        window.start(stage);
-                    } catch (Exception e1) {
-                        e1.printStackTrace();
-                    }
-                }
+                init(Integer.parseInt(portField.getText()));
+
+
                 portField.setText("");
                 portField.setPromptText("Enter a port");
             }
@@ -88,6 +70,20 @@ public class StartWindow extends Application {
         primaryStage.show();
 
 
+    }
+    public void init(int port){
+        manager.initializeConnection(port,this);
+    }
+    public void setManager(int portIn,ConnectionManager manager){
+        this.portIn=portIn;
+        this.manager=manager;
+    }
+    public void showError(String err){
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle("Error");
+        alert.setHeaderText(null);
+        alert.setContentText(err);
+        alert.showAndWait();
     }
 
 }
