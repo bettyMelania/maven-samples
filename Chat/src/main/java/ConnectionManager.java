@@ -7,10 +7,7 @@ import java.io.ObjectOutputStream;
 import java.net.ConnectException;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -60,13 +57,14 @@ public class ConnectionManager extends Application {
             }
             else {
 
-                List<Object> streams=new ArrayList<>();
-                ObjectInputStream in=new ObjectInputStream(requestSocket.getInputStream());
-                streams.add(new ObjectOutputStream(requestSocket.getOutputStream()));
-                streams.add(in);
+                synchronized (streamsForSockets) {
+                    List<Object> streams = new ArrayList<>();
+                    ObjectInputStream in = new ObjectInputStream(requestSocket.getInputStream());
+                    streams.add(new ObjectOutputStream(requestSocket.getOutputStream()));
+                    streams.add(in);
+                    streamsForSockets.put(requestSocket, streams);
+                }
                 System.out.println("init");
-                streamsForSockets.put(requestSocket,streams);
-
                 ChatWindow window = new ChatWindow();
                 window.setManagerSocket(this,requestSocket);
                 Stage stage = new Stage();
@@ -165,13 +163,13 @@ public class ConnectionManager extends Application {
                     try {
                         Socket connection = providerSocket.accept();
                         System.out.println("accepted");
-                        List<Object> streams=new ArrayList<>();
-                        ObjectInputStream in=new ObjectInputStream(connection.getInputStream());
-
-                        streams.add(new ObjectOutputStream(connection.getOutputStream()));
-                        streams.add(in);
-                        streamsForSockets.put(connection,streams);
-
+                        synchronized (streamsForSockets) {
+                            List<Object> streams = new ArrayList<>();
+                            ObjectInputStream in = new ObjectInputStream(connection.getInputStream());
+                            streams.add(new ObjectOutputStream(connection.getOutputStream()));
+                            streams.add(in);
+                            streamsForSockets.put(connection, streams);
+                        }
                         ChatWindow window = new ChatWindow();
                         sendManager(window,connection);
                         Platform.runLater(new Runnable(){
