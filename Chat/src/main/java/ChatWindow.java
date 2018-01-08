@@ -17,7 +17,7 @@ import java.net.Socket;
 
 public class ChatWindow  extends Application {
     private Socket connection;
-    private TextArea messages;
+    private TextArea messages= new TextArea();
     private ConnectionManager manager;
 
 
@@ -32,7 +32,8 @@ public class ChatWindow  extends Application {
         Label produs = new Label("connected with: "+connection);
         grid.add(produs, 0, 0);
 
-        messages= new TextArea();
+
+        messages.setEditable(false);
         grid.add(messages, 0, 1);
 
 
@@ -55,8 +56,6 @@ public class ChatWindow  extends Application {
 
                 messageField.setText("");
                 messageField.setPromptText("Enter a message");
-                //if(messageField.getText().equals("!bye"))
-                    //stopReceiving();
             }
         });
 
@@ -101,5 +100,9 @@ public class ChatWindow  extends Application {
 
     public int getPort() {
         return connection.getLocalPort();
+    }
+
+    public TextArea getMessages() {
+        return messages;
     }
 }

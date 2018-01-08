@@ -1,10 +1,12 @@
 import javafx.application.Application;
 import javafx.application.Platform;
+import javafx.scene.control.TextArea;
 import javafx.stage.Stage;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.ConnectException;
+import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.*;
@@ -14,30 +16,30 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 public class ConnectionManager extends Application {
-    //we have 3 peoples: port: 2000,3000,4000
+    //we have 3 peoples: port: 2000,4000,5000
     private volatile Map<Socket,List<Object>> streamsForSockets;
     private volatile Map<ObjectInputStream,ReceiveMessagesTask> receiverThreads;
     private ThreadPoolExecutor executor;
     @Override
     public void start(Stage primaryStage){
-        executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(3);
+        executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(10);
         streamsForSockets=new HashMap<>();
         receiverThreads=new HashMap<>();
 
         StartWindow c1 = new StartWindow();
         c1.setManager(2000, this);
         StartWindow c2 = new StartWindow();
-        c2.setManager(3000, this);
+        c2.setManager(4000, this);
         StartWindow c3 = new StartWindow();
-        c3.setManager(4000, this);
+        c3.setManager(5000, this);
         try {
 
             c1.start(new Stage());
             runServer(2000);
             c2.start(new Stage());
-            runServer(3000);
-            c3.start(new Stage());
             runServer(4000);
+            c3.start(new Stage());
+            runServer(5000);
 
         } catch (Exception ex) {
             ex.printStackTrace();
@@ -48,35 +50,38 @@ public class ConnectionManager extends Application {
         ServerTask task=new ServerTask(listenPort);
         executor.execute(task);
     }
-    public Socket initializeConnection(int port,StartWindow s) {
+    public Socket initializeConnection(int port,StartWindow s,int localPort) {
+
         Socket requestSocket=null;
-            try{
+        try{
+
             requestSocket = new Socket("localhost", port);
+
             if(requestSocket==null){
                 s.showError("This port isn't available");
             }
             else {
-
-                synchronized (streamsForSockets) {
+                ChatWindow window = new ChatWindow();
                     List<Object> streams = new ArrayList<>();
                     ObjectInputStream in = new ObjectInputStream(requestSocket.getInputStream());
-                    streams.add(new ObjectOutputStream(requestSocket.getOutputStream()));
+                    ObjectOutputStream out=new ObjectOutputStream(requestSocket.getOutputStream());
+                    streams.add(out);
                     streams.add(in);
+                    streams.add(window.getMessages());
+                synchronized (streamsForSockets) {
                     streamsForSockets.put(requestSocket, streams);
                 }
-                System.out.println("init");
-                ChatWindow window = new ChatWindow();
+
                 window.setManagerSocket(this,requestSocket);
                 Stage stage = new Stage();
-
+                window.setManagerSocket(this,requestSocket);
                 try {
-                    window.setManagerSocket(this,requestSocket);
                     window.start(stage);
                 } catch (Exception e1) {
                     e1.printStackTrace();
                 }
-                //ReceiveMessagesTask thread=receiveMessage(in,window);
-                //receiverThreads.put(in,thread);
+                ReceiveMessagesTask task=receiveMessage(in,window);
+                receiverThreads.put(in,task);
                 send("!Hello",requestSocket);
                 System.out.println("connection started");
             }
@@ -90,10 +95,11 @@ public class ConnectionManager extends Application {
         return requestSocket;
     }
 
-    private ReceiveMessagesTask receiveMessage(ObjectInputStream in,ChatWindow window){
+    private synchronized ReceiveMessagesTask receiveMessage(ObjectInputStream in,ChatWindow window){
         ReceiveMessagesTask task=new ReceiveMessagesTask(in,window);
         executor.execute(task);
         return task;
+
     }
 
     public void send(String message,Socket socket){
@@ -104,6 +110,56 @@ public class ConnectionManager extends Application {
         }catch (Exception ex){
             ex.printStackTrace();
         }
+        if(message.equals("!bye")) {
+            ObjectInputStream in=(ObjectInputStream)streamsForSockets.get(socket).get(1);
+             receiverThreads.get(in).interrupt();
+             receiverThreads.remove(in);
+            ((Stage)((TextArea)streamsForSockets.get(socket).get(2)).getScene().getWindow()).close();
+            streamsForSockets.remove(socket);
+            closeConection(socket.getPort(), socket.getLocalPort());
+
+        }
+        else if(message.equals("!bye bye")){
+            closeAllMyConnections(socket.getLocalPort());
+        }
+    }
+
+    private void closeAllMyConnections(int localPort) {
+        Iterator it = streamsForSockets.entrySet().iterator();
+        List<Socket> toRemove=new ArrayList<>();
+       for(Map.Entry<Socket,List<Object>> pair:streamsForSockets.entrySet()){
+            Socket socket=pair.getKey();
+            if(socket.getLocalPort()==localPort || socket.getPort()==localPort){
+                ObjectInputStream in=(ObjectInputStream)(pair.getValue()).get(1);
+                ((Stage)((TextArea)(pair.getValue()).get(2)).getScene().getWindow()).close();
+                receiverThreads.get(in).interrupt();
+                receiverThreads.remove(in);
+
+                toRemove.add(socket);
+            }
+        }
+        for(Socket socket:toRemove)
+            streamsForSockets.remove(socket);
+    }
+
+    private void closeConection(int port, int localPort) {
+        Iterator it = streamsForSockets.entrySet().iterator();
+        Socket toDelete=null;
+        while (it.hasNext()) {
+            Map.Entry pair = (Map.Entry)it.next();
+            Socket socket=(Socket) pair.getKey();
+            if(socket.getLocalPort()==port && socket.getPort()==localPort){
+                ObjectInputStream in=(ObjectInputStream)((List<Object>)pair.getValue()).get(1);
+                ((Stage)((TextArea)((List<Object>)pair.getValue()).get(2)).getScene().getWindow()).close();
+                receiverThreads.get(in).interrupt();
+                receiverThreads.remove(in);
+                toDelete=socket;
+                break;
+            }
+            it.remove(); // avoids a ConcurrentModificationException
+        }
+        if(toDelete!=null)
+            streamsForSockets.remove(toDelete);
     }
 
     public void sendManager(ChatWindow window,Socket connection) {
@@ -111,11 +167,12 @@ public class ConnectionManager extends Application {
         window.setManagerSocket(this,connection);
     }
 
-     class ReceiveMessagesTask implements Runnable {
+    class ReceiveMessagesTask implements Runnable {
 
         private ObjectInputStream in;
         private ChatWindow window;
         private String name="ReceiveMessages Task";
+        String message = "";
 
         public ReceiveMessagesTask(ObjectInputStream in,ChatWindow window) {
             this.in=in;
@@ -123,32 +180,40 @@ public class ConnectionManager extends Application {
         }
         @Override
         public void run() {
-            System.out.println(name + " on "+window.getPort()+" : Running");
-            String message = "";
-            while (!message.equals("!bye")) {
+            System.out.println(name + " from "+window.getPort()+" : Running");
+
+            while (!message.equals("!bye") && !message.equals("!bye bye")) {
                 try {
                     message = (String) in.readObject();
-                    System.out.println("received > " + message);
+                    //System.out.println("received > " + message);
                     window.showMessage(message);
-
                 } catch (IOException e) {
-                    window.showException(e);
+                    Platform.runLater(new Runnable() {
+                        @Override
+                        public void run() {
+                            window.showException(e);
+                        }
+                    });
                 } catch (ClassNotFoundException e) {
                     e.printStackTrace();
                 }
             }
-            System.out.println(name + " : Done");
+            System.out.println(name + " from "+window.getPort()+" : Done");
         }
         @Override
         public String toString() {
             return name;
+        }
+
+        public void interrupt() {
+            message="!bye";
         }
     }
 
     class ServerTask implements Runnable {
 
         private int listenPort;
-        private String name="ServerTask Task ";
+        private String name="ServerTask ";
 
         public ServerTask(int port) {
             this.listenPort=port;
@@ -162,15 +227,18 @@ public class ConnectionManager extends Application {
                 while (true) {
                     try {
                         Socket connection = providerSocket.accept();
-                        System.out.println("accepted");
+                        ChatWindow window = new ChatWindow();
+                        List<Object> streams = new ArrayList<>();
+                        ObjectOutputStream out=new ObjectOutputStream(connection.getOutputStream());
+                        out.flush();
+                        ObjectInputStream in = new ObjectInputStream(connection.getInputStream());
+                        streams.add(out);
+                        streams.add(in);
+                        streams.add(window.getMessages());
                         synchronized (streamsForSockets) {
-                            List<Object> streams = new ArrayList<>();
-                            ObjectInputStream in = new ObjectInputStream(connection.getInputStream());
-                            streams.add(new ObjectOutputStream(connection.getOutputStream()));
-                            streams.add(in);
                             streamsForSockets.put(connection, streams);
                         }
-                        ChatWindow window = new ChatWindow();
+
                         sendManager(window,connection);
                         Platform.runLater(new Runnable(){
                             public void run(){
@@ -182,8 +250,8 @@ public class ConnectionManager extends Application {
                                 }
                             }
                         });
-                        //ReceiveMessagesTask t=receiveMessage(in,window);
-                        //receiverThreads.put(in,t);
+                        ReceiveMessagesTask t=receiveMessage(in,window);
+                        receiverThreads.put(in,t);
                         send("!ack",connection);
                         System.out.println("connection received");
                     } catch (IOException ex) {
@@ -193,12 +261,13 @@ public class ConnectionManager extends Application {
             } catch (IOException e) {
                 e.printStackTrace();
             }
-            System.out.println(name + " : Done");
+            System.out.println(name + " port: "+listenPort+" : Done");
         }
         @Override
         public String toString() {
             return name;
         }
     }
+
 
 }

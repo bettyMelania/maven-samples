@@ -51,7 +51,7 @@ public class StartWindow extends Application {
                     showError("Enter a valid port number");
                     return;
                 }
-                init(Integer.parseInt(portField.getText()));
+                init(Integer.parseInt(portField.getText()),portIn);
 
 
                 portField.setText("");
@@ -71,8 +71,8 @@ public class StartWindow extends Application {
 
 
     }
-    public void init(int port){
-        manager.initializeConnection(port,this);
+    public void init(int port,int local){
+        manager.initializeConnection(port,this,local);
     }
     public void setManager(int portIn,ConnectionManager manager){
         this.portIn=portIn;
