@@ -1,4 +1,5 @@
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
@@ -47,7 +48,7 @@ public class ChatWindow  extends Application {
             @Override
             public void handle(ActionEvent e) {
                 //send
-                    manager.send(messageField.getText(),connection);
+                manager.send(messageField.getText(),connection);
 
 
                 messages.appendText("Me >"+messageField.getText()+"\n");
@@ -75,7 +76,7 @@ public class ChatWindow  extends Application {
 
 
 
-    private void showException(Exception ex){
+    public void showException(Exception ex){
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
         alert.setTitle("Error");
         alert.setHeaderText(null);
@@ -84,7 +85,11 @@ public class ChatWindow  extends Application {
         System.out.println(ex);
     }
     public void showMessage(String message){
-        messages.appendText("> "+message+"\n");
+        Platform.runLater(new Runnable() {
+            public void run() {
+                messages.appendText("> " + message + "\n");
+            }
+        });
     }
 
 
@@ -92,5 +97,9 @@ public class ChatWindow  extends Application {
     public void setManagerSocket(ConnectionManager manager, Socket connection) {
         this.manager=manager;
         this.connection=connection;
+    }
+
+    public int getPort() {
+        return connection.getLocalPort();
     }
 }

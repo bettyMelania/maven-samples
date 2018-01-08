@@ -11,14 +11,21 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 public class ConnectionManager extends Application {
     //we have 3 peoples: port: 2000,3000,4000
     private volatile Map<Socket,List<Object>> streamsForSockets;
+    private volatile Map<ObjectInputStream,ReceiveMessagesTask> receiverThreads;
+    private ThreadPoolExecutor executor;
     @Override
     public void start(Stage primaryStage){
+        executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(3);
         streamsForSockets=new HashMap<>();
-
+        receiverThreads=new HashMap<>();
 
         StartWindow c1 = new StartWindow();
         c1.setManager(2000, this);
@@ -41,117 +48,56 @@ public class ConnectionManager extends Application {
     }
 
     private void runServer(int listenPort) {
-        Runnable t = new Runnable() {
-            public void run() {
-                ServerSocket providerSocket;
-                try
-
-                {
-                    providerSocket = new ServerSocket(listenPort, 10);
-
-
-                    while (true) {
-                        try {
-                            Socket connection = providerSocket.accept();
-                            int port=connection.getPort();
-                            List<Object> streams=new ArrayList<>();
-                            streams.add(new ObjectOutputStream(connection.getOutputStream()));
-                            streams.add(new ObjectInputStream(connection.getInputStream()));
-                            streamsForSockets.put(connection,streams);
-
-
-                            ChatWindow window = new ChatWindow();
-                            Platform.runLater(new Runnable(){
-                                public void run(){
-                                    Stage stage = new Stage();
-                                    try {
-                                        window.start(stage);
-                                    } catch (Exception e1) {
-                                        e1.printStackTrace();
-                                    }
-                                    send("!ack",connection);
-                                    sendManager(window,connection);
-                                }
-                            });
-
-                            System.out.println("connection received");
-
-
-                        } catch (IOException ex) {
-                            ex.printStackTrace();
-                        }
-                    }
-                } catch (
-                        IOException e)
-
-                {
-                    e.printStackTrace();
-                }
-
-            }
-        };
-        new Thread(t).start();
-
+        ServerTask task=new ServerTask(listenPort);
+        executor.execute(task);
     }
     public Socket initializeConnection(int port,StartWindow s) {
-
-
         Socket requestSocket=null;
-
-
-        try {
+            try{
             requestSocket = new Socket("localhost", port);
             if(requestSocket==null){
                 s.showError("This port isn't available");
             }
             else {
 
+                List<Object> streams=new ArrayList<>();
+                ObjectInputStream in=new ObjectInputStream(requestSocket.getInputStream());
+                streams.add(new ObjectOutputStream(requestSocket.getOutputStream()));
+                streams.add(in);
+                System.out.println("init");
+                streamsForSockets.put(requestSocket,streams);
+
                 ChatWindow window = new ChatWindow();
                 window.setManagerSocket(this,requestSocket);
-
                 Stage stage = new Stage();
+
                 try {
-                    window.start(stage);
                     window.setManagerSocket(this,requestSocket);
+                    window.start(stage);
                 } catch (Exception e1) {
                     e1.printStackTrace();
                 }
-                //send("!Hello",requestSocket);
+                //ReceiveMessagesTask thread=receiveMessage(in,window);
+                //receiverThreads.put(in,thread);
+                send("!Hello",requestSocket);
                 System.out.println("connection started");
             }
-
         }catch (ConnectException ex){
             System.out.println(ex.getMessage());
+            s.showError(ex.getMessage());
         }
         catch (Exception ex) {
             ex.printStackTrace();
         }
-
         return requestSocket;
     }
-    /*
-    private void receiveMessage(ObjectInputStream in){
-        Thread receiveThread = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                String message="";
-                while(in!=null && !message.equals("!bye") && runningB){
 
-                    try {
-                        message = (String) in.readObject();
-                        System.out.println(">" + message);
-                        showMessage(message);
-                    } catch (IOException e) {
-                        showException(e);
-                    } catch (ClassNotFoundException e) {
-                        e.printStackTrace();
-                    }
-                }
-            }
-        });
-        receiveThread.start();
+    private ReceiveMessagesTask receiveMessage(ObjectInputStream in,ChatWindow window){
+        ReceiveMessagesTask task=new ReceiveMessagesTask(in,window);
+        executor.execute(task);
+        return task;
     }
-    */
+
     public void send(String message,Socket socket){
         ObjectOutputStream out=(ObjectOutputStream) streamsForSockets.get(socket).get(0);
         try {
@@ -166,4 +112,95 @@ public class ConnectionManager extends Application {
 
         window.setManagerSocket(this,connection);
     }
+
+     class ReceiveMessagesTask implements Runnable {
+
+        private ObjectInputStream in;
+        private ChatWindow window;
+        private String name="ReceiveMessages Task";
+
+        public ReceiveMessagesTask(ObjectInputStream in,ChatWindow window) {
+            this.in=in;
+            this.window=window;
+        }
+        @Override
+        public void run() {
+            System.out.println(name + " on "+window.getPort()+" : Running");
+            String message = "";
+            while (!message.equals("!bye")) {
+                try {
+                    message = (String) in.readObject();
+                    System.out.println("received > " + message);
+                    window.showMessage(message);
+
+                } catch (IOException e) {
+                    window.showException(e);
+                } catch (ClassNotFoundException e) {
+                    e.printStackTrace();
+                }
+            }
+            System.out.println(name + " : Done");
+        }
+        @Override
+        public String toString() {
+            return name;
+        }
+    }
+
+    class ServerTask implements Runnable {
+
+        private int listenPort;
+        private String name="ServerTask Task ";
+
+        public ServerTask(int port) {
+            this.listenPort=port;
+        }
+        @Override
+        public void run() {
+            System.out.println(name + " port: "+listenPort+" : Running");
+            ServerSocket providerSocket;
+            try {
+                providerSocket = new ServerSocket(listenPort, 10);
+                while (true) {
+                    try {
+                        Socket connection = providerSocket.accept();
+                        System.out.println("accepted");
+                        List<Object> streams=new ArrayList<>();
+                        ObjectInputStream in=new ObjectInputStream(connection.getInputStream());
+
+                        streams.add(new ObjectOutputStream(connection.getOutputStream()));
+                        streams.add(in);
+                        streamsForSockets.put(connection,streams);
+
+                        ChatWindow window = new ChatWindow();
+                        sendManager(window,connection);
+                        Platform.runLater(new Runnable(){
+                            public void run(){
+                                Stage stage = new Stage();
+                                try {
+                                    window.start(stage);
+                                } catch (Exception e1) {
+                                    e1.printStackTrace();
+                                }
+                            }
+                        });
+                        //ReceiveMessagesTask t=receiveMessage(in,window);
+                        //receiverThreads.put(in,t);
+                        send("!ack",connection);
+                        System.out.println("connection received");
+                    } catch (IOException ex) {
+                        ex.printStackTrace();
+                    }
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            System.out.println(name + " : Done");
+        }
+        @Override
+        public String toString() {
+            return name;
+        }
+    }
+
 }
